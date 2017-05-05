@@ -1,0 +1,148 @@
+{% extends '../base.html' %}
+
+{% block title %} {{user}} | Profile {% endblock %} 
+{% block content %} 
+
+<input type="hidden" type="hidden" value="{{account.id}}" id="account_num" />
+<div class="container-fluid">
+    <div class="col-md-2">
+        <div class="alert alert-warning" role="alert"><a class="alert-link">Balance <span class="badge">{{account.Money}}</span></a></div>
+
+        <div class="alert alert-danger" role="alert"><a href="/accounts/logout/" class="alert-link"><span class="glyphicon glyphicon-log-out"></span> Logout</a></div>
+            {% if firm %}
+                <div class="alert alert-info"><span class="glyphicon glyphicon-globe" aria-hidden="true"> </span> View <a class="alert-link" href="/view/firm/">{{firm}}</a></div>
+
+            {% else %}
+                <div class="alert alert-info"><span class="glyphicon glyphicon-globe" aria-hidden="true"> </span><a class="alert-link" href="/join/firm/"> Join Firm</a></div>
+            {% endif %}
+            <div class="alert alert-success" role="alert"><a href="/search/stock/" class="alert-link"><span class="glyphicon glyphicon-usd"></span> Buy Stocks</a></div>
+    </div>
+
+    <div class="col-md-10">
+       
+        <ul class="nav nav-tabs">
+        <li role="presentation" id="portfol" ng-click="close_all_profile_tabs(); show_current_portfolio = true; createActiveTab('portfol')" class='active'><a>Current Portfolio</a></li>
+        <li role="presentation" id="records" ng-click="close_all_profile_tabs(); show_history=true; createActiveTab('records')"><a>History</a></li>
+        <li role="presentation" id="balance" ng-click="close_all_profile_tabs(); show_balance_record = true; createActiveTab('balance')"><a>Balance Record</a></li>
+        </ul>
+        <br>
+        
+        <div ng-show = "show_current_portfolio">
+            <div ng-show="sell_section == true">
+            <div ng-show = "sell_error">
+                <label class="label label-danger">You are attempting to sell more stocks than you have!</label>
+            </div>
+            <form method="POST" action=".">
+                {% csrf_token %}
+                <label>Number of Stocks to Sell</label>
+                <input type="hidden" id="orig_shares_buy"  ng-model="shares_bought">
+                <input type="number" ng-change="checkSellParams()" ng-model="shares_to_sell" name="stock_to_sell">
+                <input type="hidden" id="row_id" name="stock_row_id">
+                <button type="button" id="sell_btn" class="btn btn-danger" data-toggle="modal" data-target="#myModal">Sell</button>
+                <!-- Modal -->
+                <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title" id="myModalLabel">Are you sure you would like yo complete your transaction</h4>
+                        </div>
+                        <div class="modal-body">
+                            All sales in this fantasy environment and in the real world are final. Are you sure you would like to sell this stock?
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-success">Yes</button>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+                            
+                            
+             </div>
+            <table class="table table-hover table-bordered" id ="stock_search_info">
+                <thead>
+                    <td>Ticker</td>
+                    <td>Last Trade Price</td>   
+                    <td>Price Paid</td>
+                    <td>% Change</td<>
+                    <td>Shares Purchased</td>
+                    <td>Purchase Value</td>
+                    <td>Day's Purchase Value</td>
+                    <td>Transaction Date-Time</td>
+                    <td>Sell</td>
+                </thead>
+                <tbody>
+                {% for stock_row in total_portfolio %}
+
+                    <tr>
+                            <td><strong>{{ stock_row.Ticker }}</strong></td>
+                            <td>${{ stock_row.CurrentPrice }}</td>
+                            <td>${{stock_row.Quote_Each}}</td>
+                            <td>{{ stock_row.pct_change }}%</td>
+                            <td>{{stock_row.Number_of_Shares}}</td>
+                            <td>${{ stock_row.Value }}</td>
+                            <td>${{ stock_row.Today_Value }}</td>
+                            <td>{{ stock_row.Date_Time }}
+                            <td style="background-color:#ef432d;" ng-click="showSellSection({{stock_row.Number_of_Shares}}, {{stock_row.id}} )"><p style="color:white" >Sell</p></td>
+                            
+                            <br>
+                        </tr>
+                    {%endfor%}
+
+                    
+                    </tr>
+                </tbody>
+                    
+            </table>
+        </div>
+        <div ng-show = "show_history">
+            <table class="table table-hover table-bordered" id ="stock_search_info">
+            <thead>
+                <td>Transaction Type</td>
+                <td>Ticker</td>
+                <td>Price per Share</td>
+                <td>Number of Shares</td>
+                <td>Transaction Date-Time</td>
+                <td>Total Cost</td>
+            </thead>
+            <tbody>
+                {% for transaction in transactions reversed%}
+                <tr {% if transaction.Type.0 == 'Sell' %} style="background-color:#ef432d; text-color:white;"{%else%}style="background-color:#3bfc19"{%endif%}>
+                    
+                        <td>{{ transaction.Type.0 }}</td>
+                        <td>{{ transaction.Ticker }}</td>
+                        <td >${{transaction.Quote_Each}}</td>
+                        <td >{{transaction.Number_of_Shares}}</td>
+                        <td>{{transaction.Date_Time}}</td>
+                        <td>${{ transaction.Total_Cost }}</td>
+                        
+                   
+                
+                </tr>
+                 {%endfor%}
+            </tbody>
+                    
+            </table>
+        </div>
+        <div ng-show="show_balance_record">
+            <div class="btn-group" role="group" aria-label="...">
+                <button type="button" class="btn btn-default" ng-click="get_latest_transactions('Year')" id="year">Year</button>
+                <button type="button" class="btn btn-default" ng-click="get_latest_transactions('Month')" id="month">Month</button>
+                <button type="button" class="btn btn-default" ng-click="get_latest_transactions('Week')" id="week">Week</button>
+            </div>
+
+            <div id="graph"><br/>Graph will Appear Here</div>
+        </div>
+
+        
+    </div>
+
+
+</div>
+
+
+
+
+{% endblock %}

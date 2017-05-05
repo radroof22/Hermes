@@ -1,0 +1,137 @@
+{% extends '../base.html' %}
+
+{% block title %} Search Stocks {% endblock %} 
+{% block content %} 
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+<div class="panel panel-default">
+  <!-- Default panel contents -->
+  <div class="panel-heading">Stock Search</div>
+  <div class="panel-body">
+    {% if error %}
+        <div class="alert alert-danger">{{error}} </div>
+    {% endif %}
+    <input type="text"  ng-model="stock_to_search">
+    <button ng-click="getStockSearch([[stock_to_search]])" class="btn btn-primary btn-xs">Search</button>
+
+  </div>
+
+  <!-- Table -->
+  <div ng-show="showStockInformation" class="container-fluid">
+        
+        <table class="table table-hover table-bordered" id ="stock_search_info">
+            <thead>
+                <td>Name</td>
+                <td>Last Trade Price</td>
+                <td>High</td>
+                <td>Low</td>
+                <td>Open</td>
+                <td>Close</td>
+                <td>% Change</td>
+            </thead>
+            <tbody>
+                <tr>
+                <td>[[dataStock.Name]]</td>
+                <td >[[dataStock.LastTradePriceOnly]]</td>
+                <td>[[dataStock.DaysHigh]]</td>
+                <td>[[dataStock.DaysLow]]</td>
+                <td>[[dataStock.Open]]</td>
+                <td>[[dataStock.PreviousClose]]</td>
+                <td>[[dataStock.PercentChange]]</td>
+                </tr>
+            </tbody>
+                    
+        </table>
+        <br>
+            <center>Current Account Balance: <span class="badge" ng-model="balance">{{account.Money}}</span></center><br><br>
+        <br>
+        <div class="col-md-6 w3-panel w3-card" >
+            <h2>Buy</h2>
+            <hr>
+            <div ng-show="showStockInformation" >
+            <form method = "POST" action=".">
+                {% csrf_token %}
+                <input type="hidden" value="buy" name="trans_type">
+                # of Shares: <input type="number" name="num_of_shares" id="share_number" ng-model ="share_number" ng-change="searchStockFunc()">
+                <input type="hidden" name="share_price" id="share_price" value="[[dataStock.LastTradePriceOnly]]">
+                <input type="hidden" id="balance" value="{{account.Money}}">
+                <input type="hidden" name="stock_symbol" value="[[stock_to_search]]">
+                <div class="pull-right">
+                    <span class="label label-info">[[cost]]</span>
+                </div>    
+                <br><br>
+                Estimated Balance: <span class="label label-warning">[[estBalance]]</span><br><br>
+    
+                <div ng-show="show_error" class="label label-danger">This Purchase Will Put You In Debt</div><br><br>
+                <button class= "btn btn-success" type="button" id= "btn_buy" data-toggle="modal" data-target="#buyModal">Buy</button>
+                <!-- Modal -->
+                <div class="modal fade" id="buyModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title" id="myModalLabel">Are you sure you would like yo complete your transaction</h4>
+                        </div>
+                        <div class="modal-body">
+                            All sales in this fantasy environment and in the real world are final. Are you sure you would like to sell this stock?
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-success">Yes</button>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            </div>
+            <br>
+        </div>
+        <div class="col-md-6 w3-panel w3-card" >
+            <h2>Sell</h2>
+            <hr>
+            <form method = "POST" action=".">
+                {% csrf_token %}
+                <input type="hidden" name="trans_type" value="sell">
+                # of Shares: <input type="number" name="shares_to_sell" id="share_number_sell" ng-model ="share_number_sell" ng-change="sellStockCompute()">
+                <input type="hidden" name="ticker" value="[[stock_to_search]]">
+
+                <div class="pull-right">
+                    <span class="label label-info">[[dataStock.LastTradePriceOnly * share_number_sell]]</span>
+                </div>    
+                <br><br>
+                Estimated Balance: <span id="sell_bal" class="label label-warning">[[sell_balance]]</span><br><br>
+    
+                <div ng-show="show_error" class="label label-danger">This Purchase Will Put You In Debt</div><br><br>
+                <button class= "btn btn-danger" type="button" id= "btn_sell" data-toggle="modal" data-target="#sellModal" >Sell</button>
+                <!-- Modal -->
+                <div class="modal fade" id="sellModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title" id="myModalLabel">Are you sure you would like yo complete your transaction</h4>
+                        </div>
+                        <div class="modal-body">
+                            All sales in this fantasy environment and in the real world are final. Are you sure you would like to sell this stock?
+                            <br/>
+                            <br/>
+                            This sell will delete your last purchase of the stock you searched. If you would like to sell a previous purchase, go to <a href="/accounts/profile/">Profile</a>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-success">Yes</button>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <br>
+        </div>
+        <br>
+        <br>
+        <br>
+    
+     </div>
+</div>
+
+{% endblock %}

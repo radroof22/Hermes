@@ -1,0 +1,25 @@
+{% extends '../base.html' %}
+
+{% block title %} Join Firm{% endblock %} 
+{% block content %}
+<div class="alert alert-info" role="alert">
+  <a href="/create/firm/" class="alert-link">You can <strong>create your own firm!</strong></a>
+</div> 
+
+<h3><u>Firms to Join</u></h3> <p>Firms are lobby's you can join to play against friends and family's. You can view reports to monitor how you are doing and see who is the best trader.</p>
+<ul class="list-group">
+    {% for firm in firms %}
+        <form method="POST" action=".">
+
+        {% csrf_token %}
+        <li class="list-group-item">
+            
+                {{firm}}
+                <input type="hidden" name = "join_firm" value="{{firm}}" />
+                <div class="pull-right"><button type="submit" class="btn btn-xs btn-success">Join</button></div>
+            
+        </li>
+        </form>
+    {% endfor %}
+</ul>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends '../base.html' %}
+
+{% block title %} {{firm}} | View{% endblock %} 
+{% block content %} 
+
+<div class="col-md-4">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">{{firm}} Members</h3>
+        </div>
+        <div class="panel-body">
+            <ul class="list-group">
+                {% for member in firm.useraccount_set.all %}
+                    <li class="list-group-item">{{member}} <div class="pull-right"><span class="badge">${{member.Money}}</span></div></li>
+                {% endfor %}
+            </ul>
+            <div class="alert alert-info" role="alert">
+                <a href="/leave/firm/" class="alert-link">If you would like you can <strong>leave this firm</strong></a>
+            </div> 
+        </div>
+    </div>
+</div>
+<div class="col-md-8">
+    <div class="btn-group" role="group" aria-label="...">
+        <button type="button" class="btn btn-default" ng-click="getFirmImprovement('Year')" id="yearPercent">Year</button>
+        <button type="button" class="btn btn-default" ng-click="getFirmImprovement('Month')" id="monthPercent">Month</button>
+        <button type="button" class="btn btn-default" ng-click="getFirmImprovement('Week')" id="weekPercent">Week</button>
+    </div>
+
+    <br/>
+    <input type="hidden" value="{%for user in firm_accounts%}{{user.id}};{%endfor%}" id="user_accounts_in_firm"/>
+    <input type="hidden" value="{{users}}" id="users"/>
+    <h3>% Improvement per Member</h3>
+    <table class="table table-hover" ng-show='show_firm_table'>
+        <thead>
+            <tr>    
+                <td>Username</td>
+                <td>Balance Change</td>
+                <td>Current Balance</td>
+            </tr>
+        </thead>
+        <tbody>
+            <!--<td>{{ accounts.0 }}</td>-->
+            <tr ng-repeat="trader in member_info_to_table | orderBy:'-change' ">
+                <td>[[trader.username]]</td>
+                <td>[[trader.change]] %</td>
+                <td>[[trader.current_balance]]</td>
+            </tr>
+        <tbody>
+    </table>
+</div>
+{% endblock %}
